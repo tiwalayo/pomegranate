@@ -6,6 +6,7 @@ from setuptools.command.build_ext import build_ext as _build_ext
 
 try:
     from Cython.Build import cythonize
+    from Cython.Compiler import Options
 except ImportError:
     use_cython = False
     ext = 'c'
@@ -53,12 +54,12 @@ if not use_cython:
         Extension("pomegranate.{}".format( name ), [ "pomegranate/{}.{}".format(name, ext) ]) for name in filenames
     ] + [Extension("pomegranate.distributions.{}".format(dist), ["pomegranate/distributions/{}.{}".format(dist, ext)]) for dist in distributions]
 else:
+    Options.docstrings = False  # Don't use Cython docstrings to keep files stable for hashing
     extensions = [
             Extension("pomegranate.*", ["pomegranate/*.pyx"]),
 	        Extension("pomegranate.distributions.*", ["pomegranate/distributions/*.pyx"])
     ]
-
-    extensions = cythonize(extensions, compiler_directives={'language_level' : "2"})
+    extensions = cythonize(extensions, compiler_directives={'language_level' : "2", 'emit_code_comments': False})
 
 class build_ext(_build_ext):
     def finalize_options(self):
